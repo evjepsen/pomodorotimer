@@ -16,6 +16,7 @@ diesel_migrations = "2.1.0"
 # libsqlite3-sys = { version = "0.30", features = ["bundled"] }
 dotenvy = "0.15"
 chrono = "0.4.39"
+notify-rust = "4"
 
 [[bin]]
 name = "pomodorotimer"  # This will be your binary name

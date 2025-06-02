@@ -3,6 +3,7 @@ use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
 use chrono::Local;
+use notify_rust::Notification;
 use crate::pomodoro_timer::Period::Today;
 use crate::pomodoro_timer::TimerState::{Breaking, Idle, Working};
 use crate::timer_commander::TimerCommander;
@@ -78,6 +79,12 @@ impl PomodoroTimer{
                 return;
             }
 
+            Notification::new()
+                .summary("PomodoroTimer")
+                .body("Good work! Take a break before continuing.")
+                .show()
+                .ok();
+
             // Then breaking phase
             PomodoroTimer::update_state(&current_state, Breaking);
             let exit_condition = timer_runner.run_timer(break_duration);
@@ -86,6 +93,12 @@ impl PomodoroTimer{
                 PomodoroTimer::update_state(&current_state, Idle);
                 return;
             }
+
+            Notification::new()
+                .summary("PomodoroTimer")
+                .body("The break is over! Continue with your good work.")
+                .show()
+                .ok();
 
             // Then return to idle
             PomodoroTimer::update_state(&current_state, Idle);
