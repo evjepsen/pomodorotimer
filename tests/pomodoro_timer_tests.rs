@@ -1,6 +1,6 @@
 mod pomodoro_timer_tests {
-    use pomodorotimer::pomodoro_timer::PomodoroTimer;
-    use pomodorotimer::pomodoro_timer::TimerState::{Breaking, Idle, Working};
+    use pomodorotimer::core::pomodoro_timer::PomodoroTimer;
+    use pomodorotimer::core::pomodoro_timer::TimerState::{Breaking, Idle, Working};
     use std::thread;
     use std::time::Duration;
 
