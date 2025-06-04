@@ -1,6 +1,6 @@
-use crate::pomodoro_timer::Period::{AllTime, Today};
-use crate::pomodoro_timer::{PomodoroTimer, TimerState};
-use crate::tui_app::MessageType::{InvalidCommand, ValidCommand};
+use crate::app::tui_app::MessageType::{InvalidCommand, ValidCommand};
+use crate::core::pomodoro_timer::Period::{AllTime, Today};
+use crate::core::pomodoro_timer::{PomodoroTimer, TimerState};
 use crossterm::event::poll;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
