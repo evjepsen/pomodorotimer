@@ -1,6 +1,6 @@
-use crate::pomodoro_timer::Period::{AllTime, Today};
-use crate::pomodoro_timer::{PomodoroTimer, TimerState};
-use crate::tui_app::MessageType::{InvalidCommand, ValidCommand};
+use crate::app::tui_app::MessageType::{InvalidCommand, ValidCommand};
+use crate::core::pomodoro_timer::Period::{AllTime, Today};
+use crate::core::pomodoro_timer::{PomodoroTimer, TimerState};
 use crossterm::event::poll;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
@@ -11,6 +11,9 @@ use ratatui::{
     widgets::{Block, List, ListItem, Paragraph},
     DefaultTerminal, Frame,
 };
+use std::sync::mpsc;
+use std::sync::mpsc::Sender;
+use std::thread;
 use std::time::Duration;
 use tui_input::{Input, InputRequest};
 
@@ -37,6 +40,11 @@ enum MessageType {
     Information,
     InvalidCommand,
 }
+#[derive(Debug)]
+enum AppEvent {
+    Tick,
+    Key(event::KeyEvent),
+}
 
 impl App {
     pub fn new(timer: PomodoroTimer) -> Self {
@@ -48,42 +56,85 @@ impl App {
             prev_message: 0,
         }
     }
-
     pub fn run(mut self, mut terminal: DefaultTerminal) {
+        let (tx, rx) = mpsc::channel::<AppEvent>();
+
+        // Spawn thread for timer ticks
+        let tick_tx = tx.clone();
+        Self::spawn_tick_thread(tick_tx);
+
+        // Spawn thread for keyboard input
+        let input_tx = tx;
+        Self::spawn_read_thread(input_tx);
+
         loop {
             terminal
                 .draw(|frame| self.draw(frame))
                 .expect("Could not draw");
 
-            if let Ok(true) = poll(Duration::from_millis(100)) {
-                if let Ok(Event::Key(key)) = event::read() {
-                    match self.input_mode {
-                        InputMode::Normal => match key.code {
-                            KeyCode::Char('e') => {
-                                self.input_mode = InputMode::Editing;
-                            }
-                            KeyCode::Char('q') => {
-                                return;
-                            }
-                            _ => {}
-                        },
-                        InputMode::Editing if key.kind == KeyEventKind::Press => match key.code {
-                            KeyCode::Enter => self.submit_command(),
-                            KeyCode::Char(to_insert) => self.enter_char(to_insert),
-                            KeyCode::Backspace => self.delete_char(),
-                            KeyCode::Left => self.move_cursor_left(),
-                            KeyCode::Right => self.move_cursor_right(),
-                            KeyCode::Up => self.choose_prev_command(KeyCode::Up),
-                            KeyCode::Down => self.choose_prev_command(KeyCode::Down),
+            match rx.recv() {
+                Ok(AppEvent::Tick) => {}
+                Ok(AppEvent::Key(key)) => match self.input_mode {
+                    InputMode::Normal => match key.code {
+                        KeyCode::Char('e') => {
+                            self.input_mode = InputMode::Editing;
+                        }
+                        KeyCode::Char('q') => {
+                            return;
+                        }
+                        _ => {}
+                    },
+                    InputMode::Editing if key.kind == KeyEventKind::Press => match key.code {
+                        KeyCode::Enter => self.submit_command(),
+                        KeyCode::Char(to_insert) => self.enter_char(to_insert),
+                        KeyCode::Backspace => self.delete_char(),
+                        KeyCode::Left => self.move_cursor_left(),
+                        KeyCode::Right => self.move_cursor_right(),
+                        KeyCode::Up => self.choose_prev_command(KeyCode::Up),
+                        KeyCode::Down => self.choose_prev_command(KeyCode::Down),
 
-                            KeyCode::Esc => self.input_mode = InputMode::Normal,
-                            _ => {}
-                        },
-                        InputMode::Editing => {}
-                    }
+                        KeyCode::Esc => self.input_mode = InputMode::Normal,
+                        _ => {}
+                    },
+                    InputMode::Editing => {}
+                },
+                Err(_) => {
+                    panic!("Main thread threw error when receiving event.")
                 }
             }
         }
+    }
+
+    fn spawn_read_thread(input_tx: Sender<AppEvent>) {
+        thread::spawn(move || loop {
+            if let Ok(Event::Key(key)) = event::read() {
+                if input_tx.send(AppEvent::Key(key)).is_err() {
+                    break; // Channel closed, exit thread
+                }
+            }
+        });
+    }
+
+    fn spawn_tick_thread(tick_tx: Sender<AppEvent>) {
+        thread::spawn(move || {
+            use std::time::Instant;
+
+            let mut next_tick = Instant::now() + Duration::from_secs(1);
+
+            loop {
+                let now = Instant::now();
+                if now >= next_tick {
+                    if tick_tx.send(AppEvent::Tick).is_err() {
+                        break; // Channel closed, exit thread
+                    }
+                    // Schedule next tick exactly 1 second from the last scheduled time
+                    next_tick += Duration::from_secs(1);
+                } else {
+                    // Sleep until the next scheduled tick
+                    thread::sleep(next_tick - now);
+                }
+            }
+        });
     }
 
     fn draw(&mut self, frame: &mut Frame) {
