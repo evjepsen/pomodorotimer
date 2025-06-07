@@ -198,8 +198,16 @@ impl App {
 
         let command_validity = match message_array.first() {
             Some(&"start") => {
-                self.timer.start_timer();
-                ValidCommand
+                match self.timer.is_user_signed_in() {
+                    true => {
+                        self.timer.start_timer();
+                        ValidCommand
+                    }
+                    _ => {
+                        reply = Some(String::from("You have to login with a user before you can start a session"));
+                        InvalidCommand
+                    },
+                }
             }
             Some(&"stop") => {
                 self.timer.stop_timer();

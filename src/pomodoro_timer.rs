@@ -265,6 +265,10 @@ impl PomodoroTimer {
         true
     }
 
+    pub fn is_user_signed_in(&self) -> bool {
+        self.username.is_some()
+    }
+
     pub fn get_username(&self) -> Option<String> {
         self.username.clone()
     }
