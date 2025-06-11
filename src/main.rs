@@ -1,5 +1,5 @@
-use pomodorotimer::pomodoro_timer::PomodoroTimer;
-use pomodorotimer::tui_app::App;
+use pomodorotimer::app::tui_app::App;
+use pomodorotimer::core::pomodoro_timer::PomodoroTimer;
 
 /// Personal pomodoro timer main function
 fn main() {

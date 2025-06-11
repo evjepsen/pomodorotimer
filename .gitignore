@@ -1,4 +1,5 @@
 *.db
+errors.log
 
 # Created by https://www.toptal.com/developers/gitignore/api/rust-analyzer,rust,linux,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=rust-analyzer,rust,linux,macos
