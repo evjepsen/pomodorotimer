@@ -1,9 +1,9 @@
-use crate::schema::*;
+use crate::core::schema::timer_runs;
 use chrono::NaiveDate;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable)]
-#[diesel(table_name = crate::schema::timer_runs)]
+#[diesel(table_name = timer_runs)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct TimerRuns {
     pub id: i32,
