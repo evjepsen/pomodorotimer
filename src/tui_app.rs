@@ -1,8 +1,8 @@
-use std::fmt::format;
 use crate::pomodoro_timer::Period::{AllTime, Today};
 use crate::pomodoro_timer::{PomodoroTimer, TimerState};
 use crate::tui_app::MessageType::{InvalidCommand, ValidCommand};
 use crossterm::event::poll;
+use ratatui::widgets::Wrap;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout, Position},
@@ -90,7 +90,7 @@ impl App {
     fn draw(&mut self, frame: &mut Frame) {
         let vertical = Layout::vertical([
             Constraint::Length(8),
-            Constraint::Length(1),
+            Constraint::Length(2),
             Constraint::Length(3),
             Constraint::Min(1),
         ]);
@@ -125,7 +125,8 @@ impl App {
 
         let timer_widget = Paragraph::new(timer_text)
             .block(Block::bordered().title("Timer"))
-            .style(Style::default().fg(Color::Green));
+            .style(Style::default().fg(Color::Green))
+            .wrap(Wrap { trim: false });
 
         frame.render_widget(timer_widget, information_area);
 
@@ -153,7 +154,7 @@ impl App {
         };
 
         let text = Text::from(Line::from(msg)).patch_style(style);
-        let help_message = Paragraph::new(text);
+        let help_message = Paragraph::new(text).wrap(Wrap { trim: false });
         frame.render_widget(help_message, help_area);
 
         let input = Paragraph::new(self.input.to_string())
@@ -198,18 +199,18 @@ impl App {
         let message_array: Vec<&str> = message.split_whitespace().collect();
 
         let command_validity = match message_array.first() {
-            Some(&"start") => {
-                match self.timer.is_user_signed_in() {
-                    true => {
-                        self.timer.start_timer();
-                        ValidCommand
-                    }
-                    _ => {
-                        reply = Some(String::from("You have to login with a user before you can start a session"));
-                        InvalidCommand
-                    },
+            Some(&"start") => match self.timer.is_user_signed_in() {
+                true => {
+                    self.timer.start_timer();
+                    ValidCommand
                 }
-            }
+                _ => {
+                    reply = Some(String::from(
+                        "You have to login with a user before you can start a session",
+                    ));
+                    InvalidCommand
+                }
+            },
             Some(&"stop") => {
                 self.timer.stop_timer();
                 ValidCommand
