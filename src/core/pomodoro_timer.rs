@@ -1,8 +1,10 @@
-use crate::pomodoro_timer::Period::Today;
-use crate::pomodoro_timer::TimerState::{Breaking, Idle, Working};
-use crate::timer_commander::TimerCommander;
-use crate::timer_database::{create_timer_run, establish_connection, get_timer_runs, get_users};
-use crate::timer_runner::{ExitCondition, TimerRunner};
+use crate::core::pomodoro_timer::Period::Today;
+use crate::core::pomodoro_timer::TimerState::{Breaking, Idle, Working};
+use crate::core::timer_commander::TimerCommander;
+use crate::core::timer_runner::{ExitCondition, TimerRunner};
+use crate::db::timer_database::{
+    create_timer_run, establish_connection, get_timer_runs, get_users,
+};
 use chrono::Local;
 use notify_rust::Notification;
 use std::sync::mpsc::Receiver;
