@@ -2,6 +2,7 @@ use crate::app::tui_app::MessageType::{InvalidCommand, ValidCommand};
 use crate::core::pomodoro_timer::Period::{AllTime, Today};
 use crate::core::pomodoro_timer::{PomodoroTimer, TimerState};
 use crossterm::event::poll;
+use ratatui::widgets::Wrap;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout, Position},
@@ -89,7 +90,7 @@ impl App {
     fn draw(&mut self, frame: &mut Frame) {
         let vertical = Layout::vertical([
             Constraint::Length(8),
-            Constraint::Length(1),
+            Constraint::Length(2),
             Constraint::Length(3),
             Constraint::Min(1),
         ]);
@@ -124,7 +125,8 @@ impl App {
 
         let timer_widget = Paragraph::new(timer_text)
             .block(Block::bordered().title("Timer"))
-            .style(Style::default().fg(Color::Green));
+            .style(Style::default().fg(Color::Green))
+            .wrap(Wrap { trim: false });
 
         frame.render_widget(timer_widget, information_area);
 
@@ -152,7 +154,7 @@ impl App {
         };
 
         let text = Text::from(Line::from(msg)).patch_style(style);
-        let help_message = Paragraph::new(text);
+        let help_message = Paragraph::new(text).wrap(Wrap { trim: false });
         frame.render_widget(help_message, help_area);
 
         let input = Paragraph::new(self.input.to_string())
