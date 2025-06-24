@@ -1,4 +1,4 @@
-use crate::models::{NewTimerRun, TimerRuns};
+use crate::core::models::{NewTimerRun, TimerRuns};
 use chrono::prelude::*;
 use diesel::prelude::*;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
@@ -26,7 +26,7 @@ pub fn create_timer_run(
     working_time_secs: &i32,
     breaking_time_secs: &i32,
 ) {
-    use crate::schema::timer_runs;
+    use crate::core::schema::timer_runs;
 
     let local: NaiveDate = Local::now().date_naive();
 
@@ -44,7 +44,7 @@ pub fn create_timer_run(
 }
 
 pub fn get_timer_runs(conn: &mut SqliteConnection, username: &str) -> Vec<TimerRuns> {
-    use crate::schema::timer_runs::dsl::*;
+    use crate::core::schema::timer_runs::dsl::*;
 
     let results = timer_runs
         .filter(user.eq(username))
@@ -56,7 +56,7 @@ pub fn get_timer_runs(conn: &mut SqliteConnection, username: &str) -> Vec<TimerR
 }
 
 pub fn get_users(conn: &mut SqliteConnection) -> Vec<String> {
-    use crate::schema::timer_runs::dsl::*;
+    use crate::core::schema::timer_runs::dsl::*;
     timer_runs
         .select(user)
         .distinct()
