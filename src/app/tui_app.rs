@@ -9,7 +9,7 @@ use ratatui::{
     style::{Color, Modifier, Style, Stylize},
     text,
     text::{Line, Span, Text},
-    widgets::{Block, List, ListItem, Paragraph},
+    widgets::{Block, Paragraph},
     DefaultTerminal, Frame,
 };
 use std::time::Duration;
@@ -173,23 +173,25 @@ impl App {
             )),
         }
 
-        let messages: Vec<ListItem> = self
+        let lines: Vec<Line> = self
             .messages
             .iter()
             .rev()
             .enumerate()
             .map(|(_, m)| {
                 let (message, t) = m;
-                let content = Line::from(Span::raw(format!("{message}")));
                 let color = match t {
                     ValidCommand => Color::Green,
                     InvalidCommand => Color::Red,
                     MessageType::Information => Color::Yellow,
                 };
-                ListItem::new(content).style(Style::default().fg(color))
+                Line::from(Span::styled(message.clone(), Style::default().fg(color)))
             })
             .collect();
-        let messages = List::new(messages).block(Block::bordered().title("Messages"));
+        let messages = Paragraph::new(Text::from(lines))
+            .block(Block::bordered().title("Messages"))
+            .wrap(Wrap { trim: false });
+
         frame.render_widget(messages, messages_area);
     }
 
