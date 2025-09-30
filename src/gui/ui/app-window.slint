@@ -6,6 +6,8 @@ import { Button,
          LineEdit } from "std-widgets.slint";
 
 export component LoginDialog inherits Dialog {
+    title: "Login";
+
     callback login(string, bool);
     callback check-ok(string);
     in property <bool> ok-button-enabled: false;
@@ -34,6 +36,9 @@ export component LoginDialog inherits Dialog {
 
 
 export component AppWindow inherits Window {
+    title: "Pomodoro Timer";
+    width: 240px;
+
     in-out property <string> username: "x";
     in-out property <string> status: "idle";
     in-out property <string> remaining: "xx:xx";
@@ -41,6 +46,14 @@ export component AppWindow inherits Window {
 
     callback start();
     callback logout();
+    callback tick();
+    callback pause-resume();
+
+    Timer {
+        interval: 1000ms;
+        triggered => tick();
+    }
+
     VerticalBox {
         ut := Text {
             text: "Hello, \{root.username}.";
@@ -64,6 +77,9 @@ export component AppWindow inherits Window {
         Button {
             text: "Pause/Resume";
             enabled: root.pausable;
+            clicked => {
+                root.pause-resume();
+            }
         }
 
         Button {
