@@ -35,14 +35,16 @@ export component LoginDialog inherits Dialog {
 
 export component AppWindow inherits Window {
     in-out property <string> username: "x";
+    changed username => {
+        ut.text = "Hello, " + self.username + ".";
+    }
     in-out property <string> remaining: "xx:xx";
     in-out property <string> status: "idle";
     in-out property <int> counter: 0;
-    callback request-login;
     callback request-increase-value();
     callback logout();
     VerticalBox {
-        Text {
+        ut := Text {
             text: "Hello, \{root.username}.";
         }
 
