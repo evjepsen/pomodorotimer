@@ -17,7 +17,16 @@ diesel_migrations = "2.1.0"
 dotenvy = "0.15"
 chrono = "0.4.39"
 notify-rust = "4"
+slint = "1.12.1"
 
 [[bin]]
-name = "pomodorotimer"  # This will be your binary name
-path = "src/main.rs"  # Path to your main file
+name = "pomodorotimer"
+path = "src/main.rs"
+
+[[bin]]
+name = "gui"
+path = "src/gui/gui.rs"
+
+[build-dependencies]
+slint-build = "1.12.1"
+
