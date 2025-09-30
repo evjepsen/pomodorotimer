@@ -18,7 +18,6 @@ fn get_username() -> String {
         }
     });
     
-    // Use an Rc<RefCell<String>> so the closure can own a clone and mutate it later.
     let username = Rc::new(RefCell::new(String::new()));
     let username_clone = username.clone();
     dialog.on_login({
@@ -26,7 +25,7 @@ fn get_username() -> String {
             move |name, remember| {
             println!("Login with username: {}{}.", name, if remember { ", which will be remembered" } else { "" });
             *username_clone.borrow_mut() = name.to_string();
-            dialog.hide();
+            dialog.hide().expect("Failed to hide dialog");
         }
     });
     dialog.run().unwrap();
@@ -36,6 +35,7 @@ fn get_username() -> String {
 fn main() -> Result<(), Box<dyn Error>> {
     let username = get_username();
     let ui = AppWindow::new()?;
+    ui.set_username(username.into());
     ui.on_request_login(|| {
         println!("Login requested from UI");
     });

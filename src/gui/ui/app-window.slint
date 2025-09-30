@@ -34,20 +34,36 @@ export component LoginDialog inherits Dialog {
 
 
 export component AppWindow inherits Window {
-    in-out property <int> counter: 42;
+    in-out property <string> username: "x";
+    in-out property <string> remaining: "xx:xx";
+    in-out property <string> status: "idle";
+    in-out property <int> counter: 0;
     callback request-login;
     callback request-increase-value();
     callback logout();
     VerticalBox {
         Text {
-            text: "Counter: \{root.counter}";
+            text: "Hello, \{root.username}.";
+        }
+
+        Text {
+            text: "Status: \{root.status}";
+        }
+
+        Text {
+            text: "Remaining: \{root.remaining}";
         }
 
         Button {
-            text: "Increase value";
+            text: "Start";
             clicked => {
                 root.request-increase-value();
             }
+        }
+
+        Button {
+            text: "Pause/Resume";
+            enabled: false;
         }
 
         Button {
