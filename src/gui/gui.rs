@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ui.on_logout({
         let dialog = dialog.as_weak().unwrap();
         move || {
-            println!("Login requested.");
+            println!("Logout.");
             dialog.show().unwrap();
         }
     });
