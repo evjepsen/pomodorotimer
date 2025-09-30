@@ -1,8 +1,43 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Button, 
+         VerticalBox, 
+         HorizontalBox, 
+         StandardButton, 
+         CheckBox, 
+         LineEdit } from "std-widgets.slint";
+
+export component LoginDialog inherits Dialog {
+    callback login(string, bool);
+    callback check-ok(string);
+    in property <bool> ok-button-enabled: false;
+
+    VerticalBox {
+        Text {
+            text: "Login with username";
+        }
+        
+        usernameField := LineEdit {
+            edited(text) => check-ok(text);
+            accepted(text) => login(text, cb.checked);
+        }
+        
+        cb := CheckBox {
+            text: "Remember on next startup.";
+        }
+    }
+
+    okButton := StandardButton { 
+        kind: ok; 
+        enabled: ok-button-enabled;
+        clicked => login(usernameField.text, cb.checked);
+    }
+}
+
 
 export component AppWindow inherits Window {
     in-out property <int> counter: 42;
+    callback request-login;
     callback request-increase-value();
+    callback logout();
     VerticalBox {
         Text {
             text: "Counter: \{root.counter}";
@@ -12,6 +47,13 @@ export component AppWindow inherits Window {
             text: "Increase value";
             clicked => {
                 root.request-increase-value();
+            }
+        }
+
+        Button {
+            text: "Logout";
+            clicked => {
+                root.logout();
             }
         }
     }
