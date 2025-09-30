@@ -1,8 +1,17 @@
 use std::error::Error;
 
+use pomodorotimer::core::pomodoro_timer::PomodoroTimer;
+
 slint::include_modules!();
 
+pub struct App {
+    timer: PomodoroTimer,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
+    let mut pomodoro_app = App {
+        timer: PomodoroTimer::new(25, 5),
+    };
     let ui = AppWindow::new()?;
     let dialog = LoginDialog::new()?;
 
@@ -13,11 +22,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             dialog.show().unwrap();
         }
     });
-    ui.on_request_increase_value({
+    ui.on_start({
         let ui_handle = ui.as_weak();
         move || {
             let ui = ui_handle.unwrap();
-            ui.set_counter(ui.get_counter() + 1);
+            println!("Starting timer for user: {}", ui.get_username());
+            ui.set_pausable(true);
+            pomodoro_app.timer.start_run();
+
         }
     });
 

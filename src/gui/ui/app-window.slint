@@ -37,9 +37,9 @@ export component AppWindow inherits Window {
     in-out property <string> username: "x";
     in-out property <string> status: "idle";
     in-out property <string> remaining: "xx:xx";
-    in-out property <int> counter: 0;
+    in-out property <bool> pausable: false;
 
-    callback request-increase-value();
+    callback start();
     callback logout();
     VerticalBox {
         ut := Text {
@@ -57,13 +57,13 @@ export component AppWindow inherits Window {
         Button {
             text: "Start";
             clicked => {
-                root.request-increase-value();
+                root.start();
             }
         }
 
         Button {
             text: "Pause/Resume";
-            enabled: false;
+            enabled: root.pausable;
         }
 
         Button {
