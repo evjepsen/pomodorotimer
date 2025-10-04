@@ -1,6 +1,7 @@
 use std::{error::Error, rc::Rc};
 
 use pomodorotimer::core::pomodoro_timer::{PomodoroTimer, TimerState};
+use pomodorotimer::config::Config;
 
 slint::include_modules!();
 
@@ -14,8 +15,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     }));
     let mut paused = false;
 
+    // Load configuration
+    let config = Config::load().unwrap_or_else(|e| {
+        eprintln!("Warning: Could not load config: {}. Using defaults.", e);
+        Config::default()
+    });
+
     let ui = AppWindow::new()?;
     let dialog = LoginDialog::new()?;
+
+    // Check if we have a saved username
+    let show_dialog = if let Some(ref saved_username) = config.default_user {
+        if !saved_username.is_empty() {
+            // Set the username directly and skip the dialog
+            ui.set_username(saved_username.clone().into());
+            false // Don't show dialog
+        } else {
+            true // Show dialog
+        }
+    } else {
+        true // Show dialog
+    };
 
     ui.on_logout({
         let dialog = dialog.as_weak().unwrap();
@@ -95,6 +115,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     dialog.on_login({
         let dialog = dialog.as_weak().unwrap();
+        let ui = ui.as_weak().unwrap();
         move |name, remember| {
             println!(
                 "Login with username: {}{}.",
@@ -106,13 +127,29 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             );
 
-            dialog.hide().expect("Failed to hide dialog");
+            // Save username to config if remember is checked
+            if remember {
+                let mut config = Config::load().unwrap_or_default();
+                if let Err(e) = config.set_default_user(Some(name.to_string())) {
+                    eprintln!("Warning: Could not save username to config: {}", e);
+                }
+            } else {
+                // If remember is not checked, clear any saved username
+                let mut config = Config::load().unwrap_or_default();
+                if let Err(e) = config.set_default_user(None) {
+                    eprintln!("Warning: Could not clear username from config: {}", e);
+                }
+            }
 
+            dialog.hide().expect("Failed to hide dialog");
             ui.set_username(name);
         }
     });
 
-    dialog.show()?;
+    // Only show the login dialog if we don't have a saved username
+    if show_dialog {
+        dialog.show()?;
+    }
 
     slint::run_event_loop()?;
     Ok(())
