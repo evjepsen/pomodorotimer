@@ -79,7 +79,12 @@ impl GuiApp {
         let mut login_pack = Pack::default().with_size(330, 80);
         login_pack.set_spacing(5);
         Frame::default().with_size(0, 20).with_label("Login");
-        let mut user_input = Input::default().with_size(0, 25).with_label("User: ");
+
+        let user_row = Flex::default().with_size(330, 25).row();
+        Frame::default().with_size(60, 25).with_label("User:");
+        let mut user_input = Input::default();
+        user_row.end();
+
         if let Some(ref u) = self.settings.borrow().username {
             user_input.set_value(u);
         }
@@ -109,15 +114,25 @@ impl GuiApp {
     }
 
     fn create_settings_section(&self) -> (Input, Input, Button) {
-        let mut settings_pack = Pack::default().with_size(330, 90);
+        let mut settings_pack = Pack::default().with_size(330, 110);
         settings_pack.set_spacing(5);
         Frame::default()
             .with_size(0, 20)
             .with_label("Settings (minutes)");
-        let mut work_input = Input::default().with_size(200, 25).with_label("Work: ");
+
+        let work_row = Flex::default().with_size(330, 25).row();
+        Frame::default().with_size(60, 25).with_label("Work:");
+        let mut work_input = Input::default();
+        work_row.end();
+
+        let break_row = Flex::default().with_size(330, 25).row();
+        Frame::default().with_size(60, 25).with_label("Break:");
+        let mut break_input = Input::default();
+        break_row.end();
+
         work_input.set_value(&(self.settings.borrow().work_duration_secs / 60).to_string());
-        let mut break_input = Input::default().with_size(200, 25).with_label("Break: ");
         break_input.set_value(&(self.settings.borrow().break_duration_secs / 60).to_string());
+
         let save_settings_btn = Button::default()
             .with_size(0, 25)
             .with_label("Save Settings");
