@@ -8,13 +8,15 @@ This is a Rust-based Pomodoro timer with a TUI interface and SQLite persistence.
   - `TimerRunner`: Runs in a dedicated thread to handle the countdown. Communicates via `mpsc` channels.
   - `TimerCommander`: Sends commands (`Start`, `Stop`, `Pause`, `GetTimeRemaining`) to the `TimerRunner`.
 - **UI (`src/app/`)**:
-  - `TuiApp`: Ratatui-based terminal interface. Handles user input and renders the timer state.
+  - `TuiApp`: Ratatui-based terminal interface.
+  - `GuiApp`: FLTK-based graphical interface. Handles settings and credentials storage.
 - **Database (`src/db/`)**:
   - `TimerDatabase`: Diesel-based SQLite integration. Handles migrations automatically on connection.
 
 ## Critical Workflows
-- **Run App**: `cargo run` (requires `DATABASE_URL` in `.env` or environment).
-- **Run Tests**: `cargo test` (integration tests in `tests/pomodoro_timer_tests.rs`).
+- **Run TUI**: `cargo run --bin pomodorotimer` (requires `DATABASE_URL`).
+- **Run GUI**: `cargo run --bin pomodorotimer-gui` (requires `DATABASE_URL`).
+- **Run Tests**: `cargo test`.
 - **Database**: Migrations are in `migrations/` and are embedded in the binary via `diesel_migrations`.
 
 ## Project Patterns & Conventions
@@ -29,6 +31,7 @@ This is a Rust-based Pomodoro timer with a TUI interface and SQLite persistence.
 - [src/core/pomodoro_timer.rs](src/core/pomodoro_timer.rs): Orchestrates the timer phases and manages `TimerState`.
 - [src/core/timer_runner.rs](src/core/timer_runner.rs): The actual countdown loop running in a separate thread.
 - [src/app/tui_app.rs](src/app/tui_app.rs): TUI implementation using `ratatui` and `tui-input`.
+- [src/app/gui_app.rs](src/app/gui_app.rs): GUI implementation using `fltk-rs`.
 - [src/db/timer_database.rs](src/db/timer_database.rs): Database connection and CRUD operations.
 
 ## Example: Adding a Command
