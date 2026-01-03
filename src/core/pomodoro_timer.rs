@@ -106,11 +106,11 @@ impl PomodoroTimer {
             PomodoroTimer::update_state(&current_state, Idle);
 
             // Log the completed iteration in the database
-            if username.is_some() {
+            if let Some(user) = username {
                 let connection = &mut establish_connection();
                 create_timer_run(
                     connection,
-                    &*username.unwrap(),
+                    &user,
                     &(working_duration.as_secs() as i32),
                     &(break_duration.as_secs() as i32),
                 )
@@ -194,20 +194,15 @@ impl PomodoroTimer {
     }
 
     pub fn get_remaining_time(&mut self) -> Duration {
-        if self.receiver.is_some() && self.commander.is_some() {
-            let r = self.receiver.as_ref().unwrap();
-            let c = self.commander.as_ref().unwrap();
-            let success = c.get_time_remaining();
-            if !success {
+        if let (Some(r), Some(c)) = (&self.receiver, &self.commander) {
+            if !c.get_time_remaining() {
                 // We are now in "Idle" since execution stopped
                 self.receiver = None;
                 self.commander = None;
                 return self.get_work_duration();
             }
             // Get the remaining time
-            let dur_res = r.try_recv();
-
-            dur_res.unwrap_or(self.get_work_duration())
+            r.try_recv().unwrap_or(self.get_work_duration())
         } else {
             self.get_work_duration()
         }
@@ -229,28 +224,21 @@ impl PomodoroTimer {
     pub fn get_total_time(&self, period: Period) -> (i32, i32) {
         let connection = &mut establish_connection();
 
-        let user = self.get_username();
-
-        // Check that user is logged in
-        if user.is_none() {
+        let Some(user) = self.get_username() else {
             return (0, 0);
-        }
+        };
 
-        let mut runs = get_timer_runs(connection, &*user.unwrap());
+        let mut runs = get_timer_runs(connection, &user);
 
         let cur_date = Local::now().date_naive();
 
         // Filter out all dates in case only today
         if period == Today {
-            runs = runs
-                .into_iter()
-                .filter(|tr| tr.date.eq(&cur_date))
-                .collect();
+            runs.retain(|tr| tr.date == cur_date);
         };
 
         // Work out the total amount of time used today
-        runs.into_iter().fold((0, 0), |acc, tr| {
-            let (working, breaking) = acc;
+        runs.into_iter().fold((0, 0), |(working, breaking), tr| {
             (
                 working + tr.working_time_secs,
                 breaking + tr.breaking_time_secs,
