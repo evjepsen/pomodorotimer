@@ -7,7 +7,7 @@ use fltk::{
     enums::{Color, Font},
     frame::Frame,
     group::{Flex, Pack},
-    input::{Input, SecretInput},
+    input::Input,
     prelude::*,
     window::Window,
 };
@@ -41,18 +41,18 @@ impl GuiApp {
     pub fn run(&self) {
         let app = app::App::default();
         let mut wind = Window::default()
-            .with_size(400, 550)
+            .with_size(350, 450)
             .with_label("Pomodoro Timer");
 
-        let mut pack = Pack::default().with_size(380, 530).center_of(&wind);
+        let mut pack = Pack::default().with_size(330, 430).center_of(&wind);
         pack.set_spacing(10);
 
-        let (user_input, pass_input, login_btn) = self.create_login_section();
+        let (user_input, login_btn) = self.create_login_section();
         let (timer_display, start_btn, pause_btn, stop_btn, status_frame) =
             self.create_timer_section();
         let (work_input, break_input, save_settings_btn) = self.create_settings_section();
         let stats_frame = Frame::default()
-            .with_size(380, 40)
+            .with_size(330, 30)
             .with_label("Stats: Login to see");
 
         pack.end();
@@ -61,7 +61,6 @@ impl GuiApp {
 
         self.setup_callbacks(
             user_input,
-            pass_input,
             login_btn,
             start_btn,
             pause_btn,
@@ -76,33 +75,29 @@ impl GuiApp {
         app.run().unwrap();
     }
 
-    fn create_login_section(&self) -> (Input, SecretInput, Button) {
-        let mut login_pack = Pack::default().with_size(380, 120);
+    fn create_login_section(&self) -> (Input, Button) {
+        let mut login_pack = Pack::default().with_size(330, 80);
         login_pack.set_spacing(5);
-        Frame::default().with_size(0, 25).with_label("Login");
-        let mut user_input = Input::default().with_size(0, 30).with_label("User: ");
+        Frame::default().with_size(0, 20).with_label("Login");
+        let mut user_input = Input::default().with_size(0, 25).with_label("User: ");
         if let Some(ref u) = self.settings.borrow().username {
             user_input.set_value(u);
         }
-        let mut pass_input = SecretInput::default().with_size(0, 30).with_label("Pass: ");
-        if let Some(ref p) = self.settings.borrow().password {
-            pass_input.set_value(p);
-        }
         let login_btn = Button::default()
-            .with_size(0, 30)
-            .with_label("Login / Save Credentials");
+            .with_size(0, 25)
+            .with_label("Login / Save Username");
         login_pack.end();
-        (user_input, pass_input, login_btn)
+        (user_input, login_btn)
     }
 
     fn create_timer_section(&self) -> (Frame, Button, Button, Button, Frame) {
-        let mut timer_pack = Pack::default().with_size(380, 150);
+        let mut timer_pack = Pack::default().with_size(330, 130);
         timer_pack.set_spacing(10);
-        let mut timer_display = Frame::default().with_size(0, 60).with_label("00:00");
-        timer_display.set_label_size(40);
+        let mut timer_display = Frame::default().with_size(0, 50).with_label("00:00");
+        timer_display.set_label_size(36);
         timer_display.set_label_font(Font::CourierBold);
 
-        let btn_flex = Flex::default().with_size(380, 40).row();
+        let btn_flex = Flex::default().with_size(330, 35).row();
         let start_btn = Button::default().with_label("Start");
         let pause_btn = Button::default().with_label("Pause");
         let stop_btn = Button::default().with_label("Stop");
@@ -114,17 +109,17 @@ impl GuiApp {
     }
 
     fn create_settings_section(&self) -> (Input, Input, Button) {
-        let mut settings_pack = Pack::default().with_size(380, 100);
+        let mut settings_pack = Pack::default().with_size(330, 90);
         settings_pack.set_spacing(5);
         Frame::default()
-            .with_size(0, 25)
+            .with_size(0, 20)
             .with_label("Settings (minutes)");
-        let mut work_input = Input::default().with_size(0, 30).with_label("Work: ");
+        let mut work_input = Input::default().with_size(200, 25).with_label("Work: ");
         work_input.set_value(&(self.settings.borrow().work_duration_secs / 60).to_string());
-        let mut break_input = Input::default().with_size(0, 30).with_label("Break: ");
+        let mut break_input = Input::default().with_size(200, 25).with_label("Break: ");
         break_input.set_value(&(self.settings.borrow().break_duration_secs / 60).to_string());
         let save_settings_btn = Button::default()
-            .with_size(0, 30)
+            .with_size(0, 25)
             .with_label("Save Settings");
         settings_pack.end();
         (work_input, break_input, save_settings_btn)
@@ -133,7 +128,6 @@ impl GuiApp {
     fn setup_callbacks(
         &self,
         user_input: Input,
-        pass_input: SecretInput,
         mut login_btn: Button,
         mut start_btn: Button,
         mut pause_btn: Button,
@@ -146,13 +140,11 @@ impl GuiApp {
         let settings_c = self.settings.clone();
         login_btn.set_callback(move |b| {
             let user = user_input.value();
-            let pass = pass_input.value();
             let mut s = settings_c.borrow_mut();
             s.username = Some(user.clone());
-            s.password = Some(pass);
             s.save();
             timer_c.borrow_mut().sign_in(&user);
-            b.set_label("Credentials Saved");
+            b.set_label("Username Saved");
         });
 
         let timer_c = self.timer.clone();

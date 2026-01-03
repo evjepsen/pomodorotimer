@@ -4,7 +4,6 @@ use std::time::Duration;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppSettings {
     pub username: Option<String>,
-    pub password: Option<String>,
     pub work_duration_secs: u64,
     pub break_duration_secs: u64,
 }
@@ -13,7 +12,6 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             username: None,
-            password: None,
             work_duration_secs: 25 * 60,
             break_duration_secs: 5 * 60,
         }
