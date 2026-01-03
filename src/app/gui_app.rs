@@ -4,7 +4,7 @@ use fltk::dialog::alert;
 use fltk::{
     app,
     button::Button,
-    enums::{Color, Font},
+    enums::{Color, Font, FrameType},
     frame::Frame,
     group::{Flex, Pack},
     input::Input,
@@ -40,9 +40,14 @@ impl GuiApp {
 
     pub fn run(&self) {
         let app = app::App::default();
+        app::set_scheme(app::Scheme::Gtk);
+        app::set_background_color(255, 255, 255);
+        app::set_visible_focus(false);
+
         let mut wind = Window::default()
             .with_size(350, 450)
             .with_label("Pomodoro Timer");
+        wind.set_color(Color::White);
 
         let mut pack = Pack::default().with_size(330, 430).center_of(&wind);
         pack.set_spacing(10);
@@ -51,9 +56,10 @@ impl GuiApp {
         let (timer_display, start_btn, pause_btn, stop_btn, status_frame) =
             self.create_timer_section();
         let (work_input, break_input, save_settings_btn) = self.create_settings_section();
-        let stats_frame = Frame::default()
+        let mut stats_frame = Frame::default()
             .with_size(330, 30)
             .with_label("Stats: Login to see");
+        stats_frame.set_label_color(Color::from_rgb(100, 100, 100));
 
         pack.end();
         wind.end();
@@ -78,19 +84,26 @@ impl GuiApp {
     fn create_login_section(&self) -> (Input, Button) {
         let mut login_pack = Pack::default().with_size(330, 80);
         login_pack.set_spacing(5);
-        Frame::default().with_size(0, 20).with_label("Login");
+        let mut header = Frame::default().with_size(0, 20).with_label("Login");
+        header.set_label_font(Font::HelveticaBold);
 
         let user_row = Flex::default().with_size(330, 25).row();
         Frame::default().with_size(60, 25).with_label("User:");
         let mut user_input = Input::default();
+        user_input.set_frame(FrameType::FlatBox);
+        user_input.set_color(Color::from_rgb(245, 245, 245));
         user_row.end();
 
         if let Some(ref u) = self.settings.borrow().username {
             user_input.set_value(u);
         }
-        let login_btn = Button::default()
+        let mut login_btn = Button::default()
             .with_size(0, 25)
             .with_label("Login / Save Username");
+        login_btn.set_color(Color::from_rgb(0, 120, 215)); // Windows/Qt Blue
+        login_btn.set_label_color(Color::White);
+        login_btn.set_frame(FrameType::FlatBox);
+
         login_pack.end();
         (user_input, login_btn)
     }
@@ -100,15 +113,26 @@ impl GuiApp {
         timer_pack.set_spacing(10);
         let mut timer_display = Frame::default().with_size(0, 50).with_label("00:00");
         timer_display.set_label_size(36);
-        timer_display.set_label_font(Font::CourierBold);
+        timer_display.set_label_font(Font::HelveticaBold);
+        timer_display.set_label_color(Color::from_rgb(50, 50, 50));
 
         let btn_flex = Flex::default().with_size(330, 35).row();
-        let start_btn = Button::default().with_label("Start");
-        let pause_btn = Button::default().with_label("Pause");
-        let stop_btn = Button::default().with_label("Stop");
+        let mut start_btn = Button::default().with_label("Start");
+        start_btn.set_color(Color::from_rgb(0, 120, 215));
+        start_btn.set_label_color(Color::White);
+        start_btn.set_frame(FrameType::FlatBox);
+
+        let mut pause_btn = Button::default().with_label("Pause");
+        pause_btn.set_color(Color::from_rgb(240, 240, 240));
+        pause_btn.set_frame(FrameType::FlatBox);
+
+        let mut stop_btn = Button::default().with_label("Stop");
+        stop_btn.set_color(Color::from_rgb(240, 240, 240));
+        stop_btn.set_frame(FrameType::FlatBox);
         btn_flex.end();
 
-        let status_frame = Frame::default().with_size(0, 20).with_label("Idle");
+        let mut status_frame = Frame::default().with_size(0, 20).with_label("Idle");
+        status_frame.set_label_color(Color::from_rgb(150, 150, 150));
         timer_pack.end();
         (timer_display, start_btn, pause_btn, stop_btn, status_frame)
     }
@@ -116,26 +140,34 @@ impl GuiApp {
     fn create_settings_section(&self) -> (Input, Input, Button) {
         let mut settings_pack = Pack::default().with_size(330, 110);
         settings_pack.set_spacing(5);
-        Frame::default()
+        let mut header = Frame::default()
             .with_size(0, 20)
             .with_label("Settings (minutes)");
+        header.set_label_font(Font::HelveticaBold);
 
         let work_row = Flex::default().with_size(330, 25).row();
         Frame::default().with_size(60, 25).with_label("Work:");
         let mut work_input = Input::default();
+        work_input.set_frame(FrameType::FlatBox);
+        work_input.set_color(Color::from_rgb(245, 245, 245));
         work_row.end();
 
         let break_row = Flex::default().with_size(330, 25).row();
         Frame::default().with_size(60, 25).with_label("Break:");
         let mut break_input = Input::default();
+        break_input.set_frame(FrameType::FlatBox);
+        break_input.set_color(Color::from_rgb(245, 245, 245));
         break_row.end();
 
         work_input.set_value(&(self.settings.borrow().work_duration_secs / 60).to_string());
         break_input.set_value(&(self.settings.borrow().break_duration_secs / 60).to_string());
 
-        let save_settings_btn = Button::default()
+        let mut save_settings_btn = Button::default()
             .with_size(0, 25)
             .with_label("Save Settings");
+        save_settings_btn.set_color(Color::from_rgb(240, 240, 240));
+        save_settings_btn.set_frame(FrameType::FlatBox);
+
         settings_pack.end();
         (work_input, break_input, save_settings_btn)
     }
