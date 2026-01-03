@@ -1,19 +1,19 @@
-use crate::core::pomodoro_timer::{PomodoroTimer, TimerState, Period};
+use crate::core::pomodoro_timer::{Period, PomodoroTimer, TimerState};
 use crate::core::settings::AppSettings;
+use fltk::dialog::alert;
 use fltk::{
     app,
     button::Button,
+    enums::{Color, Font},
     frame::Frame,
-    group::{Flex, Pack, PackType},
+    group::{Flex, Pack},
     input::{Input, SecretInput},
     prelude::*,
     window::Window,
-    enums::{Color, Font, FrameType},
 };
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 use std::time::Duration;
-use fltk::dialog::alert;
 
 pub struct GuiApp {
     timer: Rc<RefCell<PomodoroTimer>>,
@@ -24,7 +24,7 @@ impl GuiApp {
     pub fn new(timer: PomodoroTimer) -> Self {
         let settings = AppSettings::load();
         let mut timer = timer;
-        
+
         // Apply settings to timer
         timer.set_work_duration(settings.get_work_duration());
         timer.set_break_duration(settings.get_break_duration());
@@ -41,13 +41,42 @@ impl GuiApp {
     pub fn run(&self) {
         let app = app::App::default();
         let mut wind = Window::default()
-            .with_size(400, 500)
+            .with_size(400, 550)
             .with_label("Pomodoro Timer");
 
-        let mut pack = Pack::default().with_size(380, 480).center_of(&wind);
+        let mut pack = Pack::default().with_size(380, 530).center_of(&wind);
         pack.set_spacing(10);
 
-        // --- Login Section ---
+        let (user_input, pass_input, login_btn) = self.create_login_section();
+        let (timer_display, start_btn, pause_btn, stop_btn, status_frame) =
+            self.create_timer_section();
+        let (work_input, break_input, save_settings_btn) = self.create_settings_section();
+        let stats_frame = Frame::default()
+            .with_size(380, 40)
+            .with_label("Stats: Login to see");
+
+        pack.end();
+        wind.end();
+        wind.show();
+
+        self.setup_callbacks(
+            user_input,
+            pass_input,
+            login_btn,
+            start_btn,
+            pause_btn,
+            stop_btn,
+            work_input,
+            break_input,
+            save_settings_btn,
+        );
+
+        self.setup_update_loop(timer_display, status_frame, stats_frame);
+
+        app.run().unwrap();
+    }
+
+    fn create_login_section(&self) -> (Input, SecretInput, Button) {
         let mut login_pack = Pack::default().with_size(380, 120);
         login_pack.set_spacing(5);
         Frame::default().with_size(0, 25).with_label("Login");
@@ -59,44 +88,60 @@ impl GuiApp {
         if let Some(ref p) = self.settings.borrow().password {
             pass_input.set_value(p);
         }
-        let mut login_btn = Button::default().with_size(0, 30).with_label("Login / Save Credentials");
+        let login_btn = Button::default()
+            .with_size(0, 30)
+            .with_label("Login / Save Credentials");
         login_pack.end();
+        (user_input, pass_input, login_btn)
+    }
 
-        // --- Timer Section ---
+    fn create_timer_section(&self) -> (Frame, Button, Button, Button, Frame) {
         let mut timer_pack = Pack::default().with_size(380, 150);
         timer_pack.set_spacing(10);
         let mut timer_display = Frame::default().with_size(0, 60).with_label("00:00");
         timer_display.set_label_size(40);
         timer_display.set_label_font(Font::CourierBold);
 
-        let mut btn_flex = Flex::default().with_size(380, 40).row();
-        let mut start_btn = Button::default().with_label("Start");
-        let mut pause_btn = Button::default().with_label("Pause");
-        let mut stop_btn = Button::default().with_label("Stop");
+        let btn_flex = Flex::default().with_size(380, 40).row();
+        let start_btn = Button::default().with_label("Start");
+        let pause_btn = Button::default().with_label("Pause");
+        let stop_btn = Button::default().with_label("Stop");
         btn_flex.end();
-        
-        let mut status_frame = Frame::default().with_size(0, 20).with_label("Idle");
-        timer_pack.end();
 
-        // --- Settings Section ---
+        let status_frame = Frame::default().with_size(0, 20).with_label("Idle");
+        timer_pack.end();
+        (timer_display, start_btn, pause_btn, stop_btn, status_frame)
+    }
+
+    fn create_settings_section(&self) -> (Input, Input, Button) {
         let mut settings_pack = Pack::default().with_size(380, 100);
         settings_pack.set_spacing(5);
-        Frame::default().with_size(0, 25).with_label("Settings (minutes)");
+        Frame::default()
+            .with_size(0, 25)
+            .with_label("Settings (minutes)");
         let mut work_input = Input::default().with_size(0, 30).with_label("Work: ");
         work_input.set_value(&(self.settings.borrow().work_duration_secs / 60).to_string());
         let mut break_input = Input::default().with_size(0, 30).with_label("Break: ");
         break_input.set_value(&(self.settings.borrow().break_duration_secs / 60).to_string());
-        let mut save_settings_btn = Button::default().with_size(0, 30).with_label("Save Settings");
+        let save_settings_btn = Button::default()
+            .with_size(0, 30)
+            .with_label("Save Settings");
         settings_pack.end();
+        (work_input, break_input, save_settings_btn)
+    }
 
-        // --- Stats Section ---
-        let mut stats_frame = Frame::default().with_size(380, 40).with_label("Stats: Login to see");
-        
-        pack.end();
-        wind.end();
-        wind.show();
-
-        // Callbacks
+    fn setup_callbacks(
+        &self,
+        user_input: Input,
+        pass_input: SecretInput,
+        mut login_btn: Button,
+        mut start_btn: Button,
+        mut pause_btn: Button,
+        mut stop_btn: Button,
+        work_input: Input,
+        break_input: Input,
+        mut save_settings_btn: Button,
+    ) {
         let timer_c = self.timer.clone();
         let settings_c = self.settings.clone();
         login_btn.set_callback(move |b| {
@@ -135,7 +180,7 @@ impl GuiApp {
         save_settings_btn.set_callback(move |_| {
             let work_min: u64 = work_input.value().parse().unwrap_or(25);
             let break_min: u64 = break_input.value().parse().unwrap_or(5);
-            
+
             let mut s = settings_c.borrow_mut();
             s.work_duration_secs = work_min * 60;
             s.break_duration_secs = break_min * 60;
@@ -145,19 +190,25 @@ impl GuiApp {
             t.set_work_duration(Duration::from_secs(s.work_duration_secs));
             t.set_break_duration(Duration::from_secs(s.break_duration_secs));
         });
+    }
 
-        // Update loop
+    fn setup_update_loop(
+        &self,
+        mut timer_display: Frame,
+        mut status_frame: Frame,
+        mut stats_frame: Frame,
+    ) {
         let timer_c = self.timer.clone();
         let mut last_stats_update = std::time::Instant::now();
         app::add_timeout3(0.1, move |handle| {
             let mut t = timer_c.borrow_mut();
             let state = t.get_state();
             let remaining = t.get_remaining_time();
-            
+
             let mins = remaining.as_secs() / 60;
             let secs = remaining.as_secs() % 60;
             timer_display.set_label(&format!("{:02}:{:02}", mins, secs));
-            
+
             status_frame.set_label(&format!("{:?}", state));
             match state {
                 TimerState::Working => status_frame.set_label_color(Color::Red),
@@ -165,15 +216,16 @@ impl GuiApp {
                 TimerState::Idle => status_frame.set_label_color(Color::Foreground),
             }
 
-            if t.is_user_signed_in() && (last_stats_update.elapsed() > Duration::from_secs(5) || state == TimerState::Idle) {
+            if t.is_user_signed_in()
+                && (last_stats_update.elapsed() > Duration::from_secs(5)
+                    || state == TimerState::Idle)
+            {
                 let (w, b) = t.get_total_time(Period::Today);
-                stats_frame.set_label(&format!("Today: Work {}m, Break {}m", w/60, b/60));
+                stats_frame.set_label(&format!("Today: Work {}m, Break {}m", w / 60, b / 60));
                 last_stats_update = std::time::Instant::now();
             }
 
             app::repeat_timeout3(0.1, handle);
         });
-
-        app.run().unwrap();
     }
 }
