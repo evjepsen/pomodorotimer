@@ -28,14 +28,14 @@ This is a Rust-based Pomodoro timer with a TUI interface and SQLite persistence.
 - **Database**: Uses Diesel with SQLite. Migrations are embedded and run on startup in `establish_connection`.
 
 ## Key Files
-- [src/core/pomodoro_timer.rs](src/core/pomodoro_timer.rs): Orchestrates the timer phases and manages `TimerState`.
-- [src/core/timer_runner.rs](src/core/timer_runner.rs): The actual countdown loop running in a separate thread.
-- [src/app/tui_app.rs](src/app/tui_app.rs): TUI implementation using `ratatui` and `tui-input`.
-- [src/app/gui_app.rs](src/app/gui_app.rs): GUI implementation using `fltk-rs`.
-- [src/db/timer_database.rs](src/db/timer_database.rs): Database connection and CRUD operations.
+- [src/core/pomodoro_timer.rs](../src/core/pomodoro_timer.rs): Orchestrates the timer phases and manages `TimerState`.
+- [src/core/timer_runner.rs](../src/core/timer_runner.rs): The actual countdown loop running in a separate thread.
+- [src/app/tui_app.rs](../src/app/tui_app.rs): TUI implementation using `ratatui` and `tui-input`.
+- [src/app/gui_app.rs](../src/app/gui_app.rs): GUI implementation using `fltk-rs`.
+- [src/db/timer_database.rs](../src/db/timer_database.rs): Database connection and CRUD operations.
 
 ## Example: Adding a Command
-1. Add the command to `TimerCommand` enum in [src/core/timer_commander.rs](src/core/timer_commander.rs).
-2. Update `TimerRunner::run_timer` in [src/core/timer_runner.rs](src/core/timer_runner.rs) to handle the new command.
+1. Add the command to `TimerCommand` enum in [src/core/timer_commander.rs](../src/core/timer_commander.rs).
+2. Update `TimerRunner::run_timer` in [src/core/timer_runner.rs](../src/core/timer_runner.rs) to handle the new command.
 3. Add a helper method to `TimerCommander` to send the command.
-4. Update `App::submit_command` in [src/app/tui_app.rs](src/app/tui_app.rs) to parse and trigger the command.
+4. Update `App::submit_command` in [src/app/tui_app.rs](../src/app/tui_app.rs) to parse and trigger the command.
