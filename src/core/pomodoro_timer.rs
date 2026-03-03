@@ -81,11 +81,14 @@ impl PomodoroTimer {
                 return;
             }
 
-            Notification::new()
-                .summary("PomodoroTimer")
-                .body("Good work! Take a break before continuing.")
-                .show()
-                .ok();
+            thread::spawn(|| {
+                Notification::new()
+                    .summary("PomodoroTimer")
+                    .body("Good work! Take a break before continuing.")
+                    .timeout(6000)
+                    .show()
+                    .ok();
+            });
 
             // Then breaking phase
             PomodoroTimer::update_state(&current_state, Breaking);
@@ -96,11 +99,14 @@ impl PomodoroTimer {
                 return;
             }
 
-            Notification::new()
-                .summary("PomodoroTimer")
-                .body("The break is over! Continue with your good work.")
-                .show()
-                .ok();
+            thread::spawn(|| {
+                Notification::new()
+                    .summary("PomodoroTimer")
+                    .body("The break is over! Continue with your good work.")
+                    .timeout(6000)
+                    .show()
+                    .ok();
+            });
 
             // Then return to idle
             PomodoroTimer::update_state(&current_state, Idle);
